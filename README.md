@@ -49,10 +49,7 @@ config via `DOCKER_IMG_TAG`.
     docker pull
     pdf2htmlex/pdf2htmlex:0.18.8.rc2-master-20200820-ubuntu-20.04-x86_64
 
-Install lxml under python3 `pip3 install lxml` or just run the following
-and get freetype-py too.
-
-> pip3 install -r requirements.txt
+`pip install pdftranscript` should install `lxml` and `freetype-py` too.
 
 ## Configure
 
@@ -77,12 +74,12 @@ inside and drop your PDFs there.
 
 ## Run
 
-`./pdf2html.py`
+`pdf2html` or `./pdftranscript/pdf2html.py` in a cloned repo.
 
-`./transcript.py`
+`pdftranscript` or `./pdftranscript/transcript.py`
 
-When you change configuration within `./transcript.py` or tweak some
-code. You only need to run `./transcript.py`
+When you change configuration within `transcript.py` or tweak some
+code. You only need to run `./pdftranscript/transcript.py`
 
 ## Development process
 
