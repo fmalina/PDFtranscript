@@ -24,7 +24,10 @@ def pdf2html(pdf_path):
     # --embed cfijo = don't embed Css, Fonts, Images, Js, Outlines
     # > man pdf2htmlEX
     if config.DOCKER_INSTALL:
-        pdf2htm = f'docker run -ti --rm -v {config.DATA_DIR}:/pdf -w /pdf {config.DOCKER_IMG_TAG}'
+        # get the user id and group id of the current user
+        user_id = os.getuid()
+        group_id = os.getgid()
+        pdf2htm = f'docker run -ti --rm -v {config.DATA_DIR}:/pdf -w /pdf --user={user_id}:{group_id} {config.DOCKER_IMG_TAG}'
         out_dir = '/pdf/HTML'
         pdf_path = pdf_path.replace(config.PDF_DIR, '/pdf/PDF')
         hint = ''
@@ -33,11 +36,8 @@ def pdf2html(pdf_path):
         out_dir = config.HTML_DIR
         hint = ' --external-hint-tool ttfautohint'
 
-    cmd = (
-        f'{pdf2htm} --embed-external-font 0 {hint}'
-        ' --process-nontext 0 --embed cfijo'
-        f' --dest-dir {os.path.join(out_dir, fn)} {pdf_path} {fn}.html'
-    )
+    cmd = f'{pdf2htm} --embed-external-font 0 {hint} --process-nontext 0 --embed cfijo ' +\
+          f'--dest-dir {os.path.join(out_dir, fn)} {pdf_path} {fn}.html'
     print()
     print(cmd)
     os.system(cmd)
