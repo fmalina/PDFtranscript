@@ -1,6 +1,6 @@
 """
 Set your environment variables in your .env file e.g.:
-DATA_DIR=/path/to/unilex-transcript/tests
+DATA_DIR=/path/to/PDFtranscript/tests
 DOCKER_INSTALL=1
 """
 
@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # This is your project root, configure your own path.
-DATA_DIR = os.getenv('DATA_DIR', '/path/to/your/data/dir/')
+DATA_DIR = os.getenv('DATA_DIR', 'tests/')  # /path/to/your/data/dir
 # PDF folder within your project root. PDFs to convert come from here.
 PDF_DIR = os.path.join(DATA_DIR, 'PDF')
 # HTML folder is where pdf2htmlEX outputs (non-semantic HTML)
@@ -22,8 +22,7 @@ FULL_FONTS_PATH = os.getenv('FULL_FONTS_PATH', '/path/to/truetype/fonts/')
 
 DOCKER_INSTALL = bool(int(os.getenv('DOCKER_INSTALL', 0)))
 DOCKER_IMG_TAG = os.getenv(
-    'DOCKER_IMG_TAG',
-    'pdf2htmlex/pdf2htmlex:0.18.8.rc2-master-20200820-ubuntu-20.04-x86_64'
+    'DOCKER_IMG_TAG', 'pdf2htmlex/pdf2htmlex:0.18.8.rc2-master-20200820-ubuntu-20.04-x86_64'
 )
 # remove mumbo-jumbo TEXT strings before HTML processing (regexes or text)
 REMOVE_BEFORE = (

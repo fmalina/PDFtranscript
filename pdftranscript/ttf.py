@@ -25,23 +25,25 @@ If the fonts are unknown, unavailable, or glyphs can't be recognized,
 program will ask the user to recognize the letter shape
 and key in the right symbol.
 It will only ask once for each shape and remember the letter choice
-in a human readable dictionary (dictionary.json).
+in a human-readable dictionary (dictionary.json).
 
 The technical reason for random symbols:
 Seemingly random characters are produced when you copy/paste text from PDF
 because the PDF embedded fonts don't use standard unicode character code maps.
 They use Private Use Area unicode range for mapping the glyph indices to codes.
 """
+
 from lxml.html import tostring
 import string
 import glob
 import json
+
 try:
     from freetype import Face, FT_LOAD_RENDER, FT_LOAD_TARGET_MONO
 except ImportError:
     print('Requires: pip3 install freetype-py')
 try:
-    from config import FULL_FONTS_PATH
+    from pdftranscript.config import FULL_FONTS_PATH
 except ImportError:
     FULL_FONTS_PATH = './fonts'
 
@@ -52,13 +54,12 @@ def pua_content(txt):
     """Ratio of characters encoded using Private Use Area (PUA) E000—F8FF.
     PUA is used by PDF embedded fonts if original CMAP was thrown away."""
 
-    return len([1 for x in txt
-                if 0xE000 <= ord(x) <= 0xF8FF]) / float(len(txt))
+    return len([1 for x in txt if 0xE000 <= ord(x) <= 0xF8FF]) / float(len(txt))
 
 
 def bits(x):
     data = []
-    for i in range(8):
+    for _i in range(8):
         data.insert(0, int((x & 1) == 1))
         x = x >> 1
     return data
@@ -71,7 +72,7 @@ def show_glyph(data, bitmap, draw=True):
     ls = []
     s = ''
     for index, e in enumerate(w):
-        if (index+1) % (bitmap.width * 2) == 0:
+        if (index + 1) % (bitmap.width * 2) == 0:
             ls.append(s)
             s = ''
         else:
@@ -80,7 +81,7 @@ def show_glyph(data, bitmap, draw=True):
 
 
 def glyph_data(face, char):
-    face.set_char_size(32*48)  # 24*32, 32*48, 48*64
+    face.set_char_size(32 * 48)  # 24*32, 32*48, 48*64
     face.load_char(char, FT_LOAD_RENDER | FT_LOAD_TARGET_MONO)
     bitmap = face.glyph.bitmap
     # width = face.glyph.bitmap.width
@@ -90,28 +91,26 @@ def glyph_data(face, char):
     for i in range(bitmap.rows):
         row = []
         for j in range(bitmap.pitch):
-            row.extend(bits(bitmap.buffer[i*bitmap.pitch+j]))
-        data.extend(row[:bitmap.width])
+            row.extend(bits(bitmap.buffer[i * bitmap.pitch + j]))
+        data.extend(row[: bitmap.width])
     return data, bitmap
 
 
 def load_fonts(path):
     # TODO: WOFF handling
-    fonts = glob.glob(path+'/*.ttf')  # + glob.glob(path+'/*.woff')
+    fonts = glob.glob(path + '/*.ttf')  # + glob.glob(path+'/*.woff')
     fonts = {x.split('/')[-1].replace('.ttf', ''): Face(x) for x in fonts}
     if DEBUG:
         print('Loading fonts from: ' + path)
         for face in fonts.values():
-            print(face.family_name.decode(),
-                  face.style_name.decode(),
-                  face.num_glyphs, 'glyphs')
+            print(face.family_name.decode(), face.style_name.decode(), face.num_glyphs, 'glyphs')
     return fonts
 
 
 def char_lookup(fonts):
     chars = string.printable + "£©¹’'‘’“”"
     ls = []
-    for name, font in fonts.items():
+    for _name, font in fonts.items():
         for char in chars:
             data, bitmap = glyph_data(font, char)
             ls.append((str(data), char))
@@ -119,9 +118,9 @@ def char_lookup(fonts):
 
 
 def lookup_user(data, bitmap):
-    dictionary = "dictionary.json"
+    dictionary = 'dictionary.json'
     try:
-        lookup = json.load(open(dictionary, "r"))
+        lookup = json.load(open(dictionary, 'r'))
     except ValueError:  # dictionary was empty
         lookup = []
     shape = show_glyph(data, bitmap)
@@ -131,11 +130,11 @@ def lookup_user(data, bitmap):
         for line in shape:
             print(line)
         print('\a')
-        char = input("Please enter character shown: ")
-        print("you entered: ", char)
+        char = input('Please enter character shown: ')
+        print('you entered: ', char)
         lookup.append((char, shape))
         lookup = sorted(lookup, key=lambda x: x[0])
-        json.dump(lookup, open(dictionary, "w+"), indent=1, ensure_ascii=False)
+        json.dump(lookup, open(dictionary, 'w+'), indent=1, ensure_ascii=False)
         return char
 
 
@@ -166,6 +165,7 @@ def font_family(e):
             return 'f' + css.split(' ff')[1][0]
         except IndexError:
             return
+
     ancestors = [e]
     if e is not None:
         ancestors += [x for x in e.iterancestors()]
@@ -181,25 +181,26 @@ def recover_text(dom, embed_fonts_path):
     for e in dom.iter():
         text_ff = font_family(e)
         tail_ff = font_family(e.getparent())
-        def decode(txt, font): return decode_font(txt, font, embed_fonts)
+
+        def decode(txt, font):
+            return decode_font(txt, font, embed_fonts)
+
         # element text and tail(txt following el) can be different font-family
         # only decode text its font-family is embedded font
-        if (e.text and e.text != ' '
-                and text_ff in embed_fonts.keys()):
+        if e.text and e.text != ' ' and text_ff in embed_fonts.keys():
             e.text = decode(e.text, text_ff)
-        if (e.tail and e.tail is not None
-                and tail_ff in embed_fonts.keys()):
+        if e.tail and e.tail is not None and tail_ff in embed_fonts.keys():
             e.tail = decode(e.tail, tail_ff)
 
 
 if __name__ == '__main__':
-    import transcript
+    from pdftranscript import transcript
     import config
     import os.path
 
     doc_path = config.HTML_DIR + '/100026_945655/100026_945655.html'
     dom, css = transcript.prepare(doc_path)
     recover_text(dom, os.path.dirname(doc_path))
-    f = open(doc_path.replace('.html', '.htm'), "wb+")
+    f = open(doc_path.replace('.html', '.htm'), 'wb+')
     f.write(tostring(dom))
     f.close()

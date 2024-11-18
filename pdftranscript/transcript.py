@@ -20,8 +20,9 @@ Get semantic HTML from PDFs converted by pdf2htmlEX.
   See config.py for options
 
 """
+
 from lxml.html import Element, fromstring, tostring
-from ttf import pua_content  # , recover_text
+from pdftranscript.ttf import pua_content  # , recover_text
 import collections
 import types
 import re
@@ -40,31 +41,27 @@ REMOVE_HEADERS = 1
 BULLETS = ('•', '○', '■')  # list item bullets
 REMOVE_BEFORE = (
     r'<span class="_ _[a-f0-9]{1,2}"></span>',  # empty spans
-    r'<script.*?</script>(?s)',  # scripts
+    r'(?s)<script.*?</script>',  # scripts
     r'<link.*?\.css"/>',  # css file links
     r'<meta (name|http-equiv).*?>',  # meta tags
     r'<!--.*?-->',  # html comments
     r'<img alt="" src="pdf2htmlEX-64x64.png"/>',
-    r'<a class=".*?</a>'
+    r'<a class=".*?</a>',
 )
-REMOVE_AFTER = (
-    '<table></table>',
-    '<title></title>',
-    '<span>', '</span>',
-    '<div>', '</div>'
-)
+REMOVE_AFTER = ('<table></table>', '<title></title>', '<span>', '</span>', '<div>', '</div>')
 REPLACE_AFTER = ()
-HTML_DIR = './'
+HTML_DIR = '../'
 ENCODING = 'UTF-8'
 
 try:
-    import config
+    from pdftranscript import config
+
     REMOVE_BEFORE += config.REMOVE_BEFORE
     REPLACE_AFTER += config.REPLACE_AFTER
     BULLETS += config.BULLETS
     HTML_DIR = config.HTML_DIR
 except ImportError:
-    print("config.py not found. Using default configuration.")
+    print('config.py not found. Using default configuration.')
 
 # pdf2htmlEX convention for CSS class names and corresponding properties
 CSS_CLASS_MAP = {
@@ -79,17 +76,26 @@ CSS_CLASS_MAP = {
     'fc': 'color',
     'sc': 'text-shadow',
     'ls': 'letter-spacing',
-    'ws': 'word-spacing'
+    'ws': 'word-spacing',
 }
+
+
 # DOM element utilities
-def parent(e): return e.getparent()
-def exists(e): return e is not None
-def remove(e): return parent(e).remove(e)
+def parent(e):
+    return e.getparent()
+
+
+def exists(e):
+    return e is not None
+
+
+def remove(e):
+    return parent(e).remove(e)
 
 
 def insert_after(e, a):
     """Insert element just after another one"""
-    return parent(a).insert(parent(a).index(a)+1, e)
+    return parent(a).insert(parent(a).index(a) + 1, e)
 
 
 def classn(class_, el):
@@ -113,8 +119,8 @@ def css_sizes(class_, css):
 
 def wrap_set(dom, child_tag, parent_tag):
     """Wrap unbroken sets of elements in a parent container:
-        - <li> in a <ul>
-        - <tr> in a <table>
+    - <li> in a <ul>
+    - <tr> in a <table>
     """
     nxt = 0
     for e in dom.cssselect(child_tag):
@@ -131,11 +137,10 @@ def remove_headers(dom):
     leading = []  # collect topmost tags on each page and their joined text
     for n1 in dom.cssselect('.pc > *:first-child'):  # for each 1st tag on page
         n1_y = classn('y', n1)  # get its top position
-        topmost = parent(n1).cssselect('.y'+n1_y)  # select same top positions
+        topmost = parent(n1).cssselect('.y' + n1_y)  # select same top positions
         header_txt = ' '.join([x.text_content() for x in topmost])
         # strip all numbers (including page numbers)
-        header_txt = ''.join([a for a in header_txt
-                              if not a.isdigit()]).strip()
+        header_txt = ''.join(a for a in header_txt if not a.isdigit()).strip()
         # if the same text is repeated on top of every page, that's headers
         leading.append((topmost, header_txt))
     texts = [txt for topmost, txt in leading if txt]  # collect non-empty texts
@@ -144,7 +149,7 @@ def remove_headers(dom):
         for topmost, txt in leading:
             if texts[-1] in txt:  # keep empty topmost
                 if DEBUG:
-                    print("Removing header:", txt)
+                    print('Removing header:', txt)
                 for each in topmost:
                     remove(each)
     return dom
@@ -162,11 +167,11 @@ def grid_data(dom, get_dimension):
         # collect elements and their coordinates for ordering
         # if text box (.t) has a parent clip box (.c)
         # this affects actual coordinates
-        cb = (parent(l)
-              if parent(l).attrib.get('class', '').startswith('c ')
-              else None)
+        cb = None
+        if parent(l).attrib.get('class', '').startswith('c '):
+            cb = parent(l)
 
-        # collect data enriched with actual x and y coords
+        # collect data enriched with actual x and y coordinates
         x = get_dimension(l, 'x')  # left
         y = get_dimension(l, 'y') + get_dimension(l, 'h')  # bottom
 
@@ -176,10 +181,8 @@ def grid_data(dom, get_dimension):
 
         paper_height = 850  # height of A4 page in px
         y = paper_height - y  # turn bottom position into top
-        data.append(
-            types.SimpleNamespace(page=page, x=x, y=y, elem=l,
-                                  clipbox=cb, lines=[], text=l.text)
-        )
+        ns = types.SimpleNamespace(page=page, x=x, y=y, elem=l, clipbox=cb, lines=[], text=l.text)
+        data.append(ns)
     return data
 
 
@@ -190,8 +193,8 @@ def reconstruct_tables(dom, data):
     for c in sorted(data, key=lambda c: (c.page, c.y, c.x)):
         # combine page number and row position to get a useful key
         key = f'{c.page:d},{c.y:d}'
-        # create row lists(y) and clipbox groups(x)
-        rows.setdefault(key,         []).append(c)
+        # create row lists(y) and clip-box groups(x)
+        rows.setdefault(key, []).append(c)
         cboxes.setdefault(c.clipbox, []).append(c.elem)
 
     # from pprint import pprint
@@ -224,9 +227,8 @@ def reconstruct_tables(dom, data):
                 tr.append(cell.elem)
     # drop empty span, divs
     for e in dom.iter():
-        if (e.tag in ('span', 'div')
-                and not e.text_content()
-                or e.text_content() == ' '):
+        text = e.text_content()
+        if e.tag in ('span', 'div') and not text or text == ' ':
             e.drop_tag()
 
     wrap_set(dom, 'tr', 'table')
@@ -235,8 +237,8 @@ def reconstruct_tables(dom, data):
 
 def prepare(doc_path):
     s = open(doc_path, 'rt', encoding=ENCODING).read()
-    css = open(doc_path.replace('.html', '.css'),
-               'rt', encoding=ENCODING).read()
+    css_path = doc_path.replace('.html', '.css')
+    css = open(css_path, 'rt', encoding=ENCODING).read()
 
     for rm in REMOVE_BEFORE:
         s = re.sub(rm, '', s)
@@ -260,15 +262,16 @@ def prepare(doc_path):
 
 def heading_levels(dom, dimensions):
     # find most common font-size(fs), font-sizes bigger than that are headings
-    fs_stats = [(len(dom.cssselect('.fs'+cssn)), cssn, fs)
-                for cssn, fs in dimensions['fs'].items()]
+    fs_stats = [
+        (len(dom.cssselect('.fs' + cssn)), cssn, fs) for cssn, fs in dimensions['fs'].items()
+    ]
     top_stats = sorted(fs_stats, key=lambda x: x[0], reverse=True)
     prevalent_fs = top_stats[0][-1]
     headings = [x for x in reversed(fs_stats) if x[-1] > prevalent_fs]
     # match font-size classes to heading levels
     h_levels = {}
     level = 1
-    for count, cssn, size in headings:
+    for _count, cssn, _size in headings:
         h_levels[cssn] = level
         level += 1
     return h_levels
@@ -287,7 +290,7 @@ def semanticize(doc_path='test.html'):
         return dimensions[dim_type].get(classn(dim_type, el)) or 0
 
     # recover text from embedded fonts with bad CMAPS
-    # if > 50% of characters are unicode PUA
+    # if > 50% of characters are UNICODE Private Use Area
     recover = pua_content(dom.text_content()) > 0.5
     if recover:
         print('Recovery needed, not now.')
@@ -314,9 +317,10 @@ def semanticize(doc_path='test.html'):
     for l in dom.cssselect('.t'):  # noqa: E741, l means line
         # Gather information about this line to see if it's part of a block.
         # 1. detect change of look - different css classes from previous line
+        classes = l.attrib['class'].split()
         # ignore y pos and font color
-        look = ' '.join([c for c in l.attrib['class'].split()
-                         if c[0] != 'y' and c[0:2] != 'fc'])
+        classes = [c for c in classes if c[0] != 'y' and c[0:2] != 'fc']
+        look = ' '.join(classes)
         new_look = p_look != look
         # 2. detect change of margin height
         # - larger difference in bottom position from previous line
@@ -361,11 +365,10 @@ def semanticize(doc_path='test.html'):
 
         if DEBUG:
             mark = f'<{tag}>'.ljust(5)
+            classes = l.attrib['class'].ljust(40)
             if append:
-                mark = 5*' '
-            print(' Aa %d    ⇪ %d    ⇕ % 3d    %s    %s    %s' %
-                  (new_look, p_space, line_height,
-                   l.attrib['class'].ljust(40), mark, txt))
+                mark = 5 * ' '
+            print(f' Aa {new_look:d}  ⇪ {p_space:d}  ⇕ {line_height:3d}  {classes}  {mark}  {txt}')
 
         # save current values for comparison in the next loop iteration
         p_space, p_height, p_look, p_tag = space, height, look, tag
@@ -373,10 +376,10 @@ def semanticize(doc_path='test.html'):
     wrap_set(dom, 'li', 'ul')
 
     if STRIP_CSS:
-        for e in dom.cssselect("style"):
+        for e in dom.cssselect('style'):
             remove(e)
         for attr in 'style id class data-page-no data-data'.split():
-            for e in dom.cssselect("*"):
+            for e in dom.cssselect('*'):
                 try:
                     del e.attrib[attr]
                 except KeyError:
@@ -409,6 +412,7 @@ def batch_process(docs, limit=None):
         except Exception as e:
             print(e)
             import traceback
+
             print(traceback.format_exc())
             continue
 

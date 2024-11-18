@@ -1,0 +1,41 @@
+
+[project]
+name = "pdftranscript"
+version = "1.0"
+description = "PDF to semantic HTML conversion."
+authors = [
+    { name = "František Malina", email = "fmalina@pm.me" }
+]
+readme = "README.md"  # Update this if you have a README file.
+homepage = "https://github.com/fmalina/PDFtranscript/"
+keywords = ["PDF", "HTML", "conversion"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Utilities"
+]
+requires-python = ">=3.9"
+dependencies = [
+    "lxml",
+    "cssselect",
+    "freetype-py",
+    "python-dotenv"
+]
+
+[project.scripts]
+transcript = "pdftranscript.transcript:main"
+ttf = "pdftranscript.ttf:main"
+pdf2html = "pdftranscript.pdf2html:main"
+
+[tool.setuptools]
+packages = ["pdftranscript"]
+
+[tool.ruff]
+lint.select = ["E", "F", "B"]
+line-length = 100
+format.quote-style = "single"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

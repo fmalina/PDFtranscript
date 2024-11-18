@@ -2,3 +2,6 @@
 __pycache__
 .env
 tests/HTML
+/pdf2htmlEX.deb
+/uv.lock
+/.python-version
