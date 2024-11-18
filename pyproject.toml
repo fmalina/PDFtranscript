@@ -1,6 +1,6 @@
 [project]
 name = "pdftranscript"
-version = "1.0.2"
+version = "1.0.5"
 description = "PDF to semantic HTML conversion."
 authors = [
     { name = "František Malina", email = "fmalina@pm.me" }

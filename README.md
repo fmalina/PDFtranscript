@@ -3,18 +3,15 @@
 Transcript contains Python programs whose job is to transcribe PDF into
 sematic HTML.
 
-[pdftranscript](pdftranscript/transcript.py)
+[pdftranscript](https://github.com/fmalina/PDFtranscript/blob/main/pdftranscript/transcript.py) - 
+Get semantic HTML from PDFs converted by pdf2htmlEX.
 
-:   Get semantic HTML from PDFs converted by pdf2htmlEX.
+[pdfttf](https://github.com/fmalina/PDFtranscript/blob/main/pdftranscript/ttf.py) - 
+Recover lost text from PDFs where true type font characters are nothing more than
+images of themselves.
 
-[pdfttf](pdftranscript/ttf.py)
-
-:   Recover lost text from PDFs where true type font characters are nothing more than
-    images of themselves.
-
-[pdf2html](pdftranscript/pdf2html.py)
-
-:   Batch process a folder full of PDFs ready for pdftranscript
+[pdf2html](https://github.com/fmalina/PDFtranscript/blob/main/pdftranscript/pdf2html.py) - 
+Batch process a folder full of PDFs ready for pdftranscript
 
 Read the docstrings for more information.
 
@@ -28,7 +25,8 @@ and [semantic HTML after](https://fmalina.github.io/PDFtranscript/tests/HTM/repo
     pip install pdftranscript
 
 Get Python installed along with latest pdf2htmlEX. 
-on OS X with Homebrew:
+
+On OS X with Homebrew:
 
     brew install python3 pdf2htmlEX
 
