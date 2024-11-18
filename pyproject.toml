@@ -1,4 +1,3 @@
-
 [project]
 name = "pdftranscript"
 version = "1.0"
@@ -24,8 +23,8 @@ dependencies = [
 ]
 
 [project.scripts]
-transcript = "pdftranscript.transcript:main"
-ttf = "pdftranscript.ttf:main"
+pdftranscript = "pdftranscript.transcript:main"
+pdfttf = "pdftranscript.ttf:main"
 pdf2html = "pdftranscript.pdf2html:main"
 
 [tool.setuptools]

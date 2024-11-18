@@ -3,18 +3,18 @@
 Transcript contains Python programs whose job is to transcribe PDF into
 sematic HTML.
 
-[transcript.py](pdftranscript/transcript.py)
+[pdftranscript](pdftranscript/transcript.py)
 
 :   Get semantic HTML from PDFs converted by pdf2htmlEX.
 
-[ttf.py](pdftranscript/ttf.py)
+[pdfttf](pdftranscript/ttf.py)
 
-:   Recover lost text from PDFs where characters are nothing more than
+:   Recover lost text from PDFs where true type font characters are nothing more than
     images of themselves.
 
-[pdf2html.py](pdftranscript/pdf2html.py)
+[pdf2html](pdftranscript/pdf2html.py)
 
-:   Batch process a folder full of PDFs ready for transcript.py
+:   Batch process a folder full of PDFs ready for pdftranscript
 
 Read the docstrings for more information.
 

@@ -194,8 +194,7 @@ def recover_text(dom, embed_fonts_path):
 
 
 if __name__ == '__main__':
-    from pdftranscript import transcript
-    import config
+    from pdftranscript import transcript, config
     import os.path
 
     doc_path = config.HTML_DIR + '/100026_945655/100026_945655.html'
