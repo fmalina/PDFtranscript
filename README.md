@@ -56,8 +56,8 @@ importantly the DATA_DIR**. This can be any folder let\'s say
 `DATA_DIR=/path/to/pdf-transcript/tests`. If you use a docker install
 of pdf2htmlEX, you\'ll need to set `DOCKER_INSTALL=1` This will mount
 your data dir to Docker path. `DOCKER_IMG_TAG` is also
-[configurable](pdftranscript/config.py). Go ahead create your `.env` file and add
-`DATA_DIR=...`
+[configurable](https://github.com/fmalina/PDFtranscript/blob/main/pdftranscript/config.py).
+Go ahead create your `.env` file and add `DATA_DIR=...`
 
 Your DATA_DIR should end up containing 3 folders: PDF, HTML and HTM if
 you otherwise stick with default configuration. Create a 'PDF' folder
