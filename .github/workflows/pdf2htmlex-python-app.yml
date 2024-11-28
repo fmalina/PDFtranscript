@@ -25,6 +25,7 @@ jobs:
     - name: Lint
       run: |
         ruff check
-    - name: Test TBC
+    - name: Test
       run: |
-        pytest
+        ./pdftranscript/pdf2html.py
+        ./pdftranscript/transcript.py
