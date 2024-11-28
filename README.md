@@ -33,11 +33,11 @@ On OS X with Homebrew:
 or on Ubuntu/Debian
 
     sudo apt update && sudo apt install -y libfontconfig1 libcairo2 libjpeg-turbo8 ttfautohint
-    wget -o pdf2htmlEX.deb https://github.com/pdf2htmlEX/pdf2htmlEX/releases/download/v0.18.8.rc1/pdf2htmlEX-0.18.8.rc1-master-20200630-Ubuntu-bionic-x86_64.deb
+    wget https://github.com/pdf2htmlEX/pdf2htmlEX/releases/download/v0.18.8.rc1/pdf2htmlEX-0.18.8.rc1-master-20200630-Ubuntu-bionic-x86_64.deb
+    sudo apt install ./pdf2htmlEX-0.18.8.rc1-master-20200630-Ubuntu-bionic-x86_64.deb
 
-Check `sha256sum pdf2htmlEX.deb` matches `4ef2698cbeb6995189ac...`
-
-    sudo apt install ./pdf2htmlEX.deb
+Check your install
+    
     pdf2htmlEX -v
 
 Docker install of pdf2htmlEX is also supported (brew one started failing
