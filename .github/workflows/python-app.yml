@@ -1,0 +1,30 @@
+name: Python application
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.13
+      uses: actions/setup-python@v3
+      with:
+        python-version: "3.13"
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install ruff uv
+        wget -o pdf2htmlEX.deb https://github.com/pdf2htmlEX/pdf2htmlEX/releases/download/v0.18.8.rc1/pdf2htmlEX-0.18.8.rc1-master-20200630-Ubuntu-bionic-x86_64.deb
+        apt update && apt install -y libfontconfig1 libcairo2 libjpeg-turbo8 ttfautohint
+        apt install ./pdf2htmlEX.deb
+    - name: Lint
+      run: |
+        ruff check
+    - name: Test TBC
+      run: |
+        pytest
