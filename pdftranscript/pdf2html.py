@@ -27,7 +27,8 @@ def pdf2html(pdf_path):
         # get the user id and group id of the current user
         user_id = os.getuid()
         group_id = os.getgid()
-        pdf2htm = f'docker run -ti --rm -v {config.DATA_DIR}:/pdf -w /pdf --user={user_id}:{group_id} {config.DOCKER_IMG_TAG}'
+        pdf2htm = 'docker run -ti --rm -v '+\
+            f'{config.DATA_DIR}:/pdf -w /pdf --user={user_id}:{group_id} {config.DOCKER_IMG_TAG}'
         out_dir = '/pdf/HTML'
         pdf_path = pdf_path.replace(config.PDF_DIR, '/pdf/PDF')
         hint = ''
